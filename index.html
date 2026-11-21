@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EARN BD — Telegram Mini App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="toast-banner" class="toast-banner" role="status" aria-live="polite" hidden></div>
+
+  <div id="auth-gate" class="auth-gate" hidden>
+    <div class="auth-card">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      </div>
+      <h1>EARN BD</h1>
+      <p id="auth-gate-message">
+        Authenticating your Telegram session...
+      </p>
+      <button type="button" id="retry-auth-btn" class="btn-primary" hidden>Retry Authentication</button>
+    </div>
+  </div>
+
+  <div id="app-root" class="app-root" hidden>
+    <header class="top-bar">
+      <div class="top-brand">
+        <span class="top-brand-name">EARN BD</span>
+      </div>
+      <div class="top-user-meta">
+        <span id="top-user-name" class="top-user-name">User</span>
+        <span aria-hidden="true">·</span>
+        <span id="top-user-balance" class="mono-num gold-text">0.00 BDT</span>
+      </div>
+    </header>
+
+    <main class="main-container">
+      <!-- 1. HOME VIEW -->
+      <section id="view-home" class="tab-view" aria-label="Home">
+        <div class="hero-wallet-card">
+          <div class="hero-wallet-top">
+            <div>
+              <p class="hero-label">Available Balance</p>
+              <h2 id="home-balance" class="hero-balance mono-num">0.00 BDT</h2>
+            </div>
+            <div class="hero-level-text">
+              <span id="home-level">Level 1</span>
+            </div>
+          </div>
+          <div class="hero-metrics-row">
+            <div class="hero-metric">
+              <span class="metric-label">Total Earnings</span>
+              <strong id="home-total-earned" class="mono-num">0.00 BDT</strong>
+            </div>
+            <div class="hero-metric">
+              <span class="metric-label">Today's Earnings</span>
+              <strong id="home-today-earned" class="mono-num">0.00 BDT</strong>
+            </div>
+            <div class="hero-metric">
+              <span class="metric-label">Total Referrals</span>
+              <strong id="home-total-refs" class="mono-num">0</strong>
+            </div>
+          </div>
+          <div class="hero-actions-row">
+            <button type="button" class="btn-gold" data-nav="wallet">Withdraw</button>
+            <button type="button" class="btn-glass" data-nav="earn">Earn</button>
+            <button type="button" class="btn-glass" data-nav="games">Game Zone</button>
+          </div>
+        </div>
+
+        <div class="desktop-two-col">
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Daily Bonus Preview</h3>
+              <span id="home-bonus-streak" class="meta-text">0 day streak</span>
+            </div>
+            <p class="card-desc">
+              Next reward: <strong id="home-bonus-reward" class="gold-text mono-num">0.00 BDT</strong>
+            </p>
+            <button type="button" id="home-claim-bonus-btn" class="btn-primary full-width">
+              Claim Daily Bonus
+            </button>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Quick Actions</h3>
+            </div>
+            <div class="quick-actions-grid">
+              <button type="button" class="quick-btn" data-nav="earn">Channel Tasks</button>
+              <button type="button" class="quick-btn" data-nav="earn">Watch Ads</button>
+              <button type="button" class="quick-btn" data-nav="refer">Invite Friends</button>
+              <button type="button" class="quick-btn" data-nav="profile">Leaderboard</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Notifications</h3>
+            <span id="home-unread-count" class="meta-text">0 unread</span>
+          </div>
+          <div id="home-notifications-list" class="stack-list"></div>
+        </div>
+      </section>
+
+      <!-- 2. EARN VIEW -->
+      <section id="view-earn" class="tab-view" aria-label="Earn" hidden>
+        <div class="desktop-two-col">
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Daily Bonus</h3>
+              <span id="earn-bonus-streak" class="meta-text">Streak: 0</span>
+            </div>
+            <p class="card-desc">
+              Check in every day to collect <strong id="earn-bonus-reward" class="gold-text mono-num">0.00 BDT</strong>.
+            </p>
+            <button type="button" id="earn-claim-bonus-btn" class="btn-primary full-width">
+              Claim Daily Bonus
+            </button>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Watch Ads &amp; Earn (Monetag)</h3>
+              <span id="monetag-quota-text" class="meta-text">0/0 left</span>
+            </div>
+            <p id="monetag-status-desc" class="card-desc">Loading Monetag status...</p>
+            <div class="inline-actions">
+              <button type="button" id="monetag-watch-btn" class="btn-primary">Watch Ad</button>
+              <button type="button" id="monetag-claim-btn" class="btn-gold" hidden>Verify &amp; Claim</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Tasks &amp; Channel Verification</h3>
+          </div>
+          <div id="earn-tasks-list" class="stack-list"></div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Earning History</h3>
+          </div>
+          <div id="earn-history-list" class="stack-list"></div>
+        </div>
+      </section>
+
+      <!-- 3. GAME ZONE VIEW -->
+      <section id="view-games" class="tab-view" aria-label="Game Zone" hidden>
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Game Zone</h3>
+            <span class="meta-text">Server-verified rewards</span>
+          </div>
+          <div id="games-list" class="desktop-two-col"></div>
+        </div>
+
+        <div id="active-game-arena" class="surface-card" hidden>
+          <div class="card-head">
+            <h3 id="arena-title">Game</h3>
+            <button type="button" id="arena-close-btn" class="btn-secondary-sm">Close</button>
+          </div>
+          <div id="arena-body" class="arena-body"></div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Game History</h3>
+          </div>
+          <div id="games-history-list" class="stack-list"></div>
+        </div>
+      </section>
+
+      <!-- 4. REFER VIEW -->
+      <section id="view-refer" class="tab-view" aria-label="Refer" hidden>
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Invite &amp; Earn</h3>
+            <span id="refer-reward-rate" class="gold-text mono-num">0.00 BDT / invite</span>
+          </div>
+          <div class="stats-strip-3">
+            <div class="mini-stat">
+              <span class="metric-label">Total Invited</span>
+              <strong id="refer-total-invited" class="mono-num">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span class="metric-label">Successful</span>
+              <strong id="refer-successful" class="mono-num">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span class="metric-label">Earned</span>
+              <strong id="refer-total-earned" class="mono-num gold-text">0.00 BDT</strong>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="refer-code-display">Your Referral Code</label>
+            <input id="refer-code-display" type="text" readonly class="mono-num" />
+          </div>
+          <div class="field-group">
+            <label for="refer-link-display">Personal Telegram Referral Link</label>
+            <input id="refer-link-display" type="text" readonly />
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="copy-ref-btn" class="btn-primary">Copy Link</button>
+            <button type="button" id="share-ref-btn" class="btn-gold">Share Link</button>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Referral History</h3>
+          </div>
+          <div id="refer-history-list" class="stack-list"></div>
+        </div>
+      </section>
+
+      <!-- 5. WALLET VIEW -->
+      <section id="view-wallet" class="tab-view" aria-label="Wallet" hidden>
+        <div class="desktop-two-col">
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Wallet Balance</h3>
+              <span id="wallet-min-wd" class="meta-text">Min: 50.00 BDT</span>
+            </div>
+            <div class="stats-strip-3">
+              <div class="mini-stat">
+                <span class="metric-label">Available</span>
+                <strong id="wallet-available" class="mono-num gold-text">0.00</strong>
+              </div>
+              <div class="mini-stat">
+                <span class="metric-label">Pending</span>
+                <strong id="wallet-pending" class="mono-num">0.00</strong>
+              </div>
+              <div class="mini-stat">
+                <span class="metric-label">Withdrawn</span>
+                <strong id="wallet-withdrawn" class="mono-num">0.00</strong>
+              </div>
+            </div>
+          </div>
+
+          <form id="withdrawal-form" class="surface-card">
+            <div class="card-head">
+              <h3>Request Withdrawal</h3>
+            </div>
+            <div class="method-tabs" role="radiogroup" aria-label="Payment Method">
+              <button type="button" class="method-btn active" data-method="bKash">bKash</button>
+              <button type="button" class="method-btn" data-method="Nagad">Nagad</button>
+              <button type="button" class="method-btn" data-method="Rocket">Rocket</button>
+            </div>
+            <div class="field-group">
+              <label for="wd-account">Mobile Account Number (11 digits)</label>
+              <input id="wd-account" type="tel" inputmode="numeric" maxlength="11" placeholder="01XXXXXXXXX" required />
+            </div>
+            <div class="field-group">
+              <label for="wd-amount">Amount (BDT)</label>
+              <input id="wd-amount" type="number" step="0.01" min="1" placeholder="Enter amount" required />
+            </div>
+            <button type="submit" class="btn-primary full-width">Submit Withdrawal Request</button>
+          </form>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <h3>Withdrawal History</h3>
+            <div class="segmented-bar" role="tablist">
+              <button type="button" class="seg-btn active" data-wd-filter="all">All</button>
+              <button type="button" class="seg-btn" data-wd-filter="pending">Pending</button>
+              <button type="button" class="seg-btn" data-wd-filter="approved">Approved</button>
+              <button type="button" class="seg-btn" data-wd-filter="rejected">Rejected</button>
+            </div>
+          </div>
+          <div id="wallet-history-list" class="stack-list"></div>
+        </div>
+      </section>
+
+      <!-- 6. PROFILE VIEW -->
+      <section id="view-profile" class="tab-view" aria-label="Profile" hidden>
+        <div class="surface-card profile-header-card">
+          <div class="profile-avatar-wrap">
+            <img id="profile-photo" alt="Profile Photo" referrerPolicy="no-referrer" hidden />
+            <div id="profile-avatar-fallback" class="avatar-fallback">U</div>
+          </div>
+          <div class="profile-identity">
+            <h2 id="profile-name">User</h2>
+            <p id="profile-meta" class="meta-text">ID #0 · Level 1</p>
+            <p id="profile-bio-text" class="card-desc"></p>
+          </div>
+        </div>
+
+        <div class="stats-strip-4">
+          <div class="surface-card mini-stat">
+            <span class="metric-label">Balance</span>
+            <strong id="prof-balance" class="mono-num gold-text">0.00</strong>
+          </div>
+          <div class="surface-card mini-stat">
+            <span class="metric-label">Earned</span>
+            <strong id="prof-earned" class="mono-num">0.00</strong>
+          </div>
+          <div class="surface-card mini-stat">
+            <span class="metric-label">Referrals</span>
+            <strong id="prof-refs" class="mono-num">0</strong>
+          </div>
+          <div class="surface-card mini-stat">
+            <span class="metric-label">Withdrawn</span>
+            <strong id="prof-withdrawn" class="mono-num">0.00</strong>
+          </div>
+        </div>
+
+        <div class="desktop-two-col">
+          <form id="profile-edit-form" class="surface-card">
+            <div class="card-head">
+              <h3>Edit Profile &amp; Settings</h3>
+            </div>
+            <div class="field-group">
+              <label for="edit-display-name">Display Name</label>
+              <input id="edit-display-name" type="text" maxlength="60" required />
+            </div>
+            <div class="field-group">
+              <label for="edit-bio">Bio</label>
+              <input id="edit-bio" type="text" maxlength="200" placeholder="Short bio" />
+            </div>
+            <label class="toggle-row">
+              <span>Enable Notifications</span>
+              <input id="setting-notif" type="checkbox" checked />
+            </label>
+            <label class="toggle-row">
+              <span>Enable Game Sound</span>
+              <input id="setting-sound" type="checkbox" checked />
+            </label>
+            <button type="submit" class="btn-primary full-width">Save Profile</button>
+          </form>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Daily Check-In &amp; Level</h3>
+              <span id="prof-checkin-status" class="meta-text">Not checked in</span>
+            </div>
+            <p id="prof-xp-line" class="card-desc">0 XP · 0 day streak</p>
+            <button type="button" id="prof-checkin-btn" class="btn-gold full-width">Daily Check-In</button>
+            <div class="divider-line"></div>
+            <h4>Support Center</h4>
+            <div id="support-links-wrap" class="stack-list"></div>
+          </div>
+        </div>
+
+        <div class="desktop-two-col">
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Achievements</h3>
+            </div>
+            <div id="achievements-list" class="stack-list"></div>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Leaderboard</h3>
+            </div>
+            <div id="leaderboard-list" class="stack-list"></div>
+          </div>
+        </div>
+
+        <div class="desktop-two-col">
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Notifications</h3>
+              <button type="button" id="mark-notif-read-btn" class="btn-secondary-sm">Mark Read</button>
+            </div>
+            <div id="profile-notifications-list" class="stack-list"></div>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <h3>Earning History</h3>
+            </div>
+            <div id="profile-history-list" class="stack-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Primary Navigation">
+      <button type="button" class="bottom-nav-btn active" data-nav="home">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="earn">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+        <span>Earn</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="games">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+        <span>Game Zone</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="refer">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Refer</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="wallet">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+        <span>Wallet</span>
+      </button>
+      <button type="button" class="bottom-nav-btn" data-nav="profile">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
